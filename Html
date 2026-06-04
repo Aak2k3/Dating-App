@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quad — Campus Dating</title>
+<style>
+  :root{
+    --ink:#1a1410; --paper:#f4ede0; --card:#fffdf8;
+    --rose:#c8492f; --rose-dk:#9e3320; --gold:#d9a441;
+    --sage:#5c6b4a; --line:#d8cbb4; --muted:#8a7d6a;
+    --shadow:0 12px 40px -12px rgba(60,40,20,.35);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Georgia',serif; background:var(--paper); color:var(--ink);
+    min-height:100vh;
+    background-image:radial-gradient(circle at 15% 10%,rgba(217,164,65,.10),transparent 40%),
+                     radial-gradient(circle at 85% 90%,rgba(200,73,47,.08),transparent 45%);
+  }
+  .wrap{max-width:520px;margin:0 auto;padding:0 16px 90px}
+  header.top{
+    text-align:center;padding:26px 0 18px;position:relative;
+  }
+  header.top h1{
+    font-size:38px;letter-spacing:-1px;font-weight:400;
+    font-family:'Georgia',serif;
+  }
+  header.top h1 .dot{color:var(--rose)}
+  header.top .tag{color:var(--muted);font-style:italic;font-size:14px;margin-top:2px}
+  .hidden{display:none!important}
+  button{font-family:inherit;cursor:pointer;border:none}
+  input,textarea,select{font-family:inherit;font-size:15px}
+
+  /* Cards / panels */
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:22px;box-shadow:var(--shadow);margin-bottom:16px}
+  .panel h2{font-size:22px;font-weight:400;margin-bottom:4px}
+  .panel .sub{color:var(--muted);font-size:13px;font-style:italic;margin-bottom:16px}
+
+  label{display:block;font-size:12px;text-transform:uppercase;letter-spacing:1px;
+    color:var(--sage);margin:12px 0 5px;font-family:'Georgia',serif}
+  .field{width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:9px;
+    background:#fff;color:var(--ink)}
+  .field:focus{outline:none;border-color:var(--rose)}
+  textarea.field{resize:vertical;min-height:78px}
+
+  .btn{background:var(--rose);color:#fff;padding:12px 20px;border-radius:9px;
+    font-size:15px;width:100%;transition:.15s;letter-spacing:.3px}
+  .btn:hover{background:var(--rose-dk)}
+  .btn.ghost{background:transparent;color:var(--rose);border:1px solid var(--rose)}
+  .btn.ghost:hover{background:rgba(200,73,47,.08)}
+  .btn.sm{width:auto;padding:8px 16px;font-size:13px}
+  .row{display:flex;gap:10px}
+  .row .btn{flex:1}
+
+  .switch{text-align:center;margin-top:14px;font-size:14px;color:var(--muted)}
+  .switch a{color:var(--rose);cursor:pointer;text-decoration:underline}
+
+  /* nav */
+  nav.tabs{position:fixed;bottom:0;left:0;right:0;background:var(--card);
+    border-top:1px solid var(--line);display:flex;justify-content:space-around;
+    padding:8px 0 10px;z-index:50}
+  nav.tabs button{background:none;color:var(--muted);font-size:11px;
+    display:flex;flex-direction:column;align-items:center;gap:3px;letter-spacing:.5px}
+  nav.tabs button .ic{font-size:20px;line-height:1}
+  nav.tabs button.active{color:var(--rose)}
+  .badge{background:var(--rose);color:#fff;border-radius:10px;font-size:10px;
+    padding:1px 6px;margin-left:4px;font-family:sans-serif}
+
+  /* profile card (browse) */
+  .pcard{background:var(--card);border:1px solid var(--line);border-radius:18px;
+    overflow:hidden;box-shadow:var(--shadow)}
+  .pcard .photo{height:300px;display:flex;align-items:center;justify-content:center;
+    font-size:96px;background:linear-gradient(135deg,var(--gold),var(--rose));color:#fff}
+  .pcard .body{padding:20px}
+  .pcard .name{font-size:26px}
+  .pcard .meta{color:var(--sage);font-size:14px;margin:2px 0 12px;font-style:italic}
+  .pcard .bio{font-size:15px;line-height:1.55;margin-bottom:12px}
+  .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{background:rgba(92,107,74,.12);color:var(--sage);font-size:12px;
+    padding:4px 11px;border-radius:20px;font-style:italic}
+  .actions{display:flex;gap:12px;margin-top:18px}
+  .circ{flex:1;height:60px;border-radius:50px;font-size:24px;border:1px solid var(--line);
+    background:#fff;transition:.15s}
+  .circ.pass:hover{background:#f0e8d8}
+  .circ.like{background:var(--rose);color:#fff;border-color:var(--rose)}
+  .circ.like:hover{background:var(--rose-dk)}
+  .circ.report{flex:0 0 60px;color:var(--muted);font-size:18px}
+
+  .empty{text-align:center;padding:50px 20px;color:var(--muted);font-style:italic}
+  .empty .big{font-size:50px;margin-bottom:10px}
+
+  /* lists */
+  .litem{display:flex;align-items:center;gap:13px;padding:12px;border:1px solid var(--line);
+    border-radius:12px;background:var(--card);margin-bottom:10px}
+  .av{width:50px;height:50px;border-radius:50%;flex:0 0 50px;display:flex;
+    align-items:center;justify-content:center;font-size:24px;color:#fff;
+    background:linear-gradient(135deg,var(--gold),var(--rose))}
+  .litem .nm{font-size:17px}
+  .litem .lt{color:var(--muted);font-size:13px;font-style:italic}
+  .litem .go{margin-left:auto}
+
+  /* chat */
+  .chathead{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+  .msgs{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;
+    max-height:50vh;overflow-y:auto;padding:4px}
+  .msg{max-width:78%;padding:9px 13px;border-radius:14px;font-size:15px;line-height:1.4}
+  .msg.me{align-self:flex-end;background:var(--rose);color:#fff;border-bottom-right-radius:4px}
+  .msg.them{align-self:flex-start;background:#efe6d6;border-bottom-left-radius:4px}
+  .chatform{display:flex;gap:8px}
+  .chatform .field{flex:1}
+  .chatform .btn{width:auto;padding:11px 18px}
+
+  .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
+    background:var(--ink);color:var(--paper);padding:11px 20px;border-radius:30px;
+    font-size:14px;z-index:99;opacity:0;transition:.3s;pointer-events:none}
+  .toast.show{opacity:1}
+
+  .pending-note{background:rgba(217,164,65,.15);border:1px solid var(--gold);
+    border-radius:10px;padding:14px;font-size:14px;color:var(--ink);line-height:1.5}
+  .admin-tag{font-size:11px;color:var(--rose);text-align:center;margin-top:8px;cursor:pointer;
+    text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Quad<span class="dot">.</span></h1>
+    <div class="tag">where the campus meets</div>
+  </header>
+
+  <div id="app"></div>
+</div>
+
+<nav class="tabs hidden" id="nav">
+  <button data-tab="browse"><span class="ic">❦</span>Browse</button>
+  <button data-tab="matches"><span class="ic">♡</span>Matches<span class="badge hidden" id="mbadge">0</span></button>
+  <button data-tab="profile"><span class="ic">✦</span>Profile</button>
+  <button data-tab="admin" id="adminTab"><span class="ic">⚖</span>Admin<span class="badge hidden" id="abadge">0</span></button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const EMOJI=["🦊","🦉","🐢","🦋","🐝","🦌","🐙","🦜","🐈","🦢","🐉","🦔"];
+const DB={
+  async get(k){try{const r=await window.storage.get(k,true);return r?JSON.parse(r.value):null}catch{return null}},
+  async set(k,v){try{await window.storage.set(k,JSON.stringify(v),true)}catch(e){console.error(e)}}
+};
+let state={users:[],me:null,view:"auth"};
+
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
+function uid(){return 'u'+Date.now()+Math.floor(Math.random()*999)}
+function av(u){return u.emoji||"☺"}
+
+async function load(){
+  const u=await DB.get('users');state.users=u||[];
+  // seed a few demo profiles on first run so browse isn't empty
+  if(!u){
+    state.users=[
+      {id:uid(),name:"Maya R.",username:"maya_r",pw:"x",year:"Junior",major:"Architecture",bio:"I sketch buildings I'll never afford. Looking for someone to split fries and disagree about films with.",interests:["film","drawing","coffee"],emoji:"🦊",status:"approved",likes:[],blocked:[]},
+      {id:uid(),name:"Devin K.",username:"octo_devin",pw:"x",year:"Senior",major:"Marine Biology",bio:"Knows too much about octopuses. Will absolutely talk your ear off at the aquarium.",interests:["diving","cooking","trivia"],emoji:"🐙",status:"approved",likes:[],blocked:[]},
+      {id:uid(),name:"Priya S.",username:"priya_climbs",pw:"x",year:"Sophomore",major:"Comp Sci",bio:"Building an app to avoid talking to people, ironically. Climbing gym regular.",interests:["climbing","coding","matcha"],emoji:"🦋",status:"approved",likes:[],blocked:[]}
+    ];
+    await DB.set('users',state.users);
+  }
+}
+async function save(){await DB.set('users',state.users)}
+function meObj(){return state.users.find(u=>u.id===state.me)}
+
+/* ---------- AUTH ---------- */
+function renderAuth(mode='login'){
+  document.getElementById('nav').classList.add('hidden');
+  const app=document.getElementById('app');
+  if(mode==='login'){
+    app.innerHTML=`<div class="panel">
+      <h2>Welcome back</h2><div class="sub">Sign in to your campus account</div>
+      <label>Username</label><input class="field" id="le" placeholder="your_username">
+      <label>Password</label><input class="field" id="lp" type="password" placeholder="••••••••">
+      <div style="height:18px"></div>
+      <button class="btn" id="lbtn">Sign in</button>
+      <div class="switch">New here? <a id="toReg">Create an account</a></div>
+    </div>`;
+    document.getElementById('lbtn').onclick=doLogin;
+    document.getElementById('toReg').onclick=()=>renderAuth('register');
+  } else {
+    app.innerHTML=`<div class="panel">
+      <h2>Join the Quad</h2><div class="sub">No email needed — just pick a username. Reviewed by an admin before going live.</div>
+      <label>Full name</label><input class="field" id="rn" placeholder="Alex Rivera">
+      <label>Username</label><input class="field" id="re" placeholder="pick_a_handle">
+      <label>Password</label><input class="field" id="rp" type="password" placeholder="choose a password">
+      <label>Year</label>
+      <select class="field" id="ry"><option>Freshman</option><option>Sophomore</option><option>Junior</option><option>Senior</option><option>Grad</option></select>
+      <label>Major</label><input class="field" id="rm" placeholder="e.g. Psychology">
+      <label>About you</label><textarea class="field" id="rb" placeholder="A couple sentences..."></textarea>
+      <label>Interests (comma separated)</label><input class="field" id="ri" placeholder="hiking, jazz, ramen">
+      <div style="height:18px"></div>
+      <button class="btn" id="rbtn">Submit for review</button>
+      <div class="switch">Already have an account? <a id="toLog">Sign in</a></div>
+    </div>`;
+    document.getElementById('rbtn').onclick=doRegister;
+    document.getElementById('toLog').onclick=()=>renderAuth('login');
+  }
+}
+async function doRegister(){
+  const g=id=>document.getElementById(id).value.trim();
+  const name=g('rn'),username=g('re'),pw=g('rp');
+  if(!name||!username||!pw){toast("Name, username and password are required");return;}
+  if(/\s/.test(username)){toast("Username can't contain spaces");return;}
+  if(state.users.some(u=>u.username.toLowerCase()===username.toLowerCase())){toast("That username is taken");return;}
+  const u={id:uid(),name,username,pw,year:g('ry'),major:g('rm'),bio:g('rb'),
+    interests:g('ri').split(',').map(s=>s.trim()).filter(Boolean),
+    emoji:EMOJI[Math.floor(Math.random()*EMOJI.length)],
+    status:"pending",likes:[],blocked:[]};
+  state.users.push(u);await save();
+  document.getElementById('app').innerHTML=`<div class="panel">
+    <h2>You're in the queue</h2>
+    <div class="sub">Thanks, ${name.split(' ')[0]}!</div>
+    <div class="pending-note">Your account is <b>pending admin approval</b>. Once an admin approves you, you'll be able to sign in and start browsing. Check back soon.</div>
+    <div style="height:16px"></div>
+    <button class="btn ghost" id="back">Back to sign in</button>
+    <div class="admin-tag" id="peek">(demo: open admin panel)</div>
+  </div>`;
+  document.getElementById('back').onclick=()=>renderAuth('login');
+  document.getElementById('peek').onclick=()=>{state.me='ADMIN';renderAdmin();document.getElementById('nav').classList.remove('hidden');refreshBadges();};
+}
+async function doLogin(){
+  const username=document.getElementById('le').value.trim(),pw=document.getElementById('lp').value;
+  if(username.toLowerCase()==='admin'&&pw==='admin'){state.me='ADMIN';openApp('admin');return;}
+  const u=state.users.find(x=>x.username.toLowerCase()===username.toLowerCase()&&x.pw===pw);
+  if(!u){toast("No match for that username/password");return;}
+  if(u.status==='pending'){toast("Still pending admin approval");return;}
+  if(u.status==='banned'){toast("This account has been suspended");return;}
+  state.me=u.id;openApp('browse');
+}
+
+/* ---------- APP SHELL ---------- */
+function openApp(tab){
+  document.getElementById('nav').classList.remove('hidden');
+  document.getElementById('adminTab').classList.toggle('hidden',state.me!=='ADMIN');
+  switchTab(tab);refreshBadges();
+}
+function switchTab(tab){
+  state.view=tab;
+  document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+  if(tab==='browse')renderBrowse();
+  if(tab==='matches')renderMatches();
+  if(tab==='profile')renderProfile();
+  if(tab==='admin')renderAdmin();
+}
+document.querySelectorAll('nav.tabs button').forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
+
+function refreshBadges(){
+  const mb=document.getElementById('mbadge'),ab=document.getElementById('abadge');
+  if(state.me&&state.me!=='ADMIN'){
+    const n=matchesFor(state.me).length;mb.textContent=n;mb.classList.toggle('hidden',n===0);
+  } else mb.classList.add('hidden');
+  const pend=state.users.filter(u=>u.status==='pending').length+state.users.filter(u=>u.reports&&u.reports.length).length;
+  ab.textContent=pend;ab.classList.toggle('hidden',pend===0||state.me!=='ADMIN');
+}
+
+/* ---------- BROWSE ---------- */
+function candidatesFor(meId){
+  const me=state.users.find(u=>u.id===meId);
+  return state.users.filter(u=>u.id!==meId&&u.status==='approved'
+    && !me.likes.includes(u.id)
+    && !(me.blocked||[]).includes(u.id)
+    && !(u.blocked||[]).includes(meId));
+}
+function renderBrowse(){
+  const app=document.getElementById('app');
+  const list=candidatesFor(state.me);
+  if(!list.length){
+    app.innerHTML=`<div class="empty"><div class="big">❦</div>That's everyone for now.<br>Check back as more students join.</div>`;return;
+  }
+  const u=list[0];
+  app.innerHTML=`<div class="pcard">
+    <div class="photo">${av(u)}</div>
+    <div class="body">
+      <div class="name">${u.name}</div>
+      <div class="meta">${u.year} · ${u.major||'Undeclared'}</div>
+      <div class="bio">${u.bio||'No bio yet.'}</div>
+      <div class="chips">${(u.interests||[]).map(i=>`<span class="chip">${i}</span>`).join('')}</div>
+      <div class="actions">
+        <button class="circ pass" id="pass">✕</button>
+        <button class="circ report" id="rep" title="Report">⚑</button>
+        <button class="circ like" id="like">♡</button>
+      </div>
+    </div>
+  </div>`;
+  document.getElementById('pass').onclick=()=>{passUser(u.id)};
+  document.getElementById('like').onclick=()=>{likeUser(u.id)};
+  document.getElementById('rep').onclick=()=>{reportUser(u.id)};
+}
+async function likeUser(tid){
+  const me=meObj();if(!me.likes.includes(tid))me.likes.push(tid);
+  const them=state.users.find(u=>u.id===tid);
+  await save();
+  if(them.likes.includes(me.id)){toast("✦ It's a match! ✦");refreshBadges();}
+  else toast("Liked");
+  renderBrowse();
+}
+async function passUser(tid){
+  // record a soft pass so they don't reappear this session
+  const me=meObj();me._passed=me._passed||[];me._passed.push(tid);
+  // store pass as a like-exclusion via blocked-lite: use a passed list persisted
+  me.passed=me.passed||[];me.passed.push(tid);await save();
+  // make candidatesFor respect passed
+  renderBrowse();
+}
+async function reportUser(tid){
+  const them=state.users.find(u=>u.id===tid);
+  them.reports=them.reports||[];them.reports.push({by:state.me,at:Date.now()});
+  const me=meObj();me.blocked=me.blocked||[];if(!me.blocked.includes(tid))me.blocked.push(tid);
+  await save();toast("Reported & blocked. Admin will review.");refreshBadges();renderBrowse();
+}
+
+/* patch candidatesFor to respect passed list */
+const _origCand=candidatesFor;
+candidatesFor=function(meId){
+  const me=state.users.find(u=>u.id===meId);
+  return _origCand(meId).filter(u=>!(me.passed||[]).includes(u.id));
+};
+
+/* ---------- MATCHES ---------- */
+function matchesFor(meId){
+  const me=state.users.find(u=>u.id===meId);
+  return state.users.filter(u=>u.id!==meId&&me.likes.includes(u.id)&&u.likes.includes(meId)
+    &&!(me.blocked||[]).includes(u.id)&&!(u.blocked||[]).includes(meId));
+}
+function renderMatches(){
+  const app=document.getElementById('app');
+  const ms=matchesFor(state.me);
+  if(!ms.length){app.innerHTML=`<div class="empty"><div class="big">♡</div>No matches yet.<br>Keep browsing — it takes two.</div>`;return;}
+  app.innerHTML=`<div class="panel" style="padding:16px"><h2 style="margin-bottom:12px">Your matches</h2>
+    ${ms.map(u=>`<div class="litem">
+      <div class="av">${av(u)}</div>
+      <div><div class="nm">${u.name}</div><div class="lt">${u.year} · ${u.major||''}</div></div>
+      <button class="btn sm go" data-c="${u.id}">Chat</button>
+    </div>`).join('')}</div>`;
+  app.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>renderChat(b.dataset.c));
+}
+
+/* ---------- CHAT ---------- */
+function chatKey(a,b){return 'chat_'+[a,b].sort().join('_')}
+async function renderChat(tid){
+  const them=state.users.find(u=>u.id===tid);
+  const key=chatKey(state.me,tid);
+  const msgs=(await DB.get(key))||[];
+  const app=document.getElementById('app');
+  app.innerHTML=`<div class="panel">
+    <div class="chathead">
+      <button class="btn ghost sm" id="back">‹</button>
+      <div class="av">${av(them)}</div>
+      <div><div class="nm" style="font-size:18px">${them.name}</div><div class="lt">${them.major||''}</div></div>
+    </div>
+    <div class="msgs" id="msgs">${msgs.map(m=>`<div class="msg ${m.by===state.me?'me':'them'}">${escapeHtml(m.text)}</div>`).join('')||'<div class="empty" style="padding:24px">Say hi 👋</div>'}</div>
+    <div class="chatform">
+      <input class="field" id="ci" placeholder="Message ${them.name.split(' ')[0]}...">
+      <button class="btn" id="send">Send</button>
+    </div>
+  </div>`;
+  document.getElementById('back').onclick=()=>switchTab('matches');
+  const send=async()=>{
+    const inp=document.getElementById('ci');const txt=inp.value.trim();if(!txt)return;
+    msgs.push({by:state.me,text:txt,at:Date.now()});await DB.set(key,msgs);
+    inp.value='';renderChat(tid);
+  };
+  document.getElementById('send').onclick=send;
+  document.getElementById('ci').addEventListener('keydown',e=>{if(e.key==='Enter')send()});
+  const m=document.getElementById('msgs');m.scrollTop=m.scrollHeight;
+}
+function escapeHtml(s){return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+
+/* ---------- PROFILE ---------- */
+function renderProfile(){
+  const me=meObj();const app=document.getElementById('app');
+  app.innerHTML=`<div class="panel">
+    <div style="text-align:center;margin-bottom:6px">
+      <div class="av" style="width:80px;height:80px;font-size:40px;margin:0 auto 8px">${av(me)}</div>
+      <h2>${me.name}</h2><div class="sub">@${me.username}</div>
+    </div>
+    <label>Year</label>
+    <select class="field" id="py">${['Freshman','Sophomore','Junior','Senior','Grad'].map(y=>`<option ${y===me.year?'selected':''}>${y}</option>`).join('')}</select>
+    <label>Major</label><input class="field" id="pm" value="${me.major||''}">
+    <label>About you</label><textarea class="field" id="pb">${me.bio||''}</textarea>
+    <label>Interests (comma separated)</label><input class="field" id="pi" value="${(me.interests||[]).join(', ')}">
+    <div style="height:16px"></div>
+    <button class="btn" id="psave">Save changes</button>
+    <div style="height:8px"></div>
+    <button class="btn ghost" id="logout">Sign out</button>
+  </div>`;
+  document.getElementById('psave').onclick=async()=>{
+    me.year=document.getElementById('py').value;
+    me.major=document.getElementById('pm').value.trim();
+    me.bio=document.getElementById('pb').value.trim();
+    me.interests=document.getElementById('pi').value.split(',').map(s=>s.trim()).filter(Boolean);
+    await save();toast("Profile saved");
+  };
+  document.getElementById('logout').onclick=()=>{state.me=null;renderAuth('login');document.getElementById('nav').classList.add('hidden');};
+}
+
+/* ---------- ADMIN ---------- */
+function renderAdmin(){
+  const app=document.getElementById('app');
+  const pending=state.users.filter(u=>u.status==='pending');
+  const reported=state.users.filter(u=>u.reports&&u.reports.length);
+  app.innerHTML=`<div class="panel">
+    <h2>Admin — approvals</h2><div class="sub">Review new signups before they go live</div>
+    ${pending.length?pending.map(u=>`<div class="litem">
+      <div class="av">${av(u)}</div>
+      <div><div class="nm">${u.name}</div><div class="lt">@${u.username} · ${u.year} ${u.major||''}</div></div>
+      <div class="go" style="display:flex;gap:6px">
+        <button class="btn sm" data-ap="${u.id}">Approve</button>
+        <button class="btn ghost sm" data-rj="${u.id}">Reject</button>
+      </div>
+    </div>`).join(''):'<div class="empty" style="padding:20px">No pending signups.</div>'}
+  </div>
+  <div class="panel">
+    <h2>Reported users</h2><div class="sub">Flagged by students</div>
+    ${reported.length?reported.map(u=>`<div class="litem">
+      <div class="av">${av(u)}</div>
+      <div><div class="nm">${u.name}</div><div class="lt">${u.reports.length} report(s)</div></div>
+      <div class="go" style="display:flex;gap:6px">
+        <button class="btn sm" data-ban="${u.id}">Ban</button>
+        <button class="btn ghost sm" data-clr="${u.id}">Dismiss</button>
+      </div>
+    </div>`).join(''):'<div class="empty" style="padding:20px">No active reports.</div>'}
+  </div>`;
+  app.querySelectorAll('[data-ap]').forEach(b=>b.onclick=async()=>{find(b.dataset.ap).status='approved';await save();toast("Approved");renderAdmin();refreshBadges();});
+  app.querySelectorAll('[data-rj]').forEach(b=>b.onclick=async()=>{state.users=state.users.filter(u=>u.id!==b.dataset.rj);await save();toast("Rejected");renderAdmin();refreshBadges();});
+  app.querySelectorAll('[data-ban]').forEach(b=>b.onclick=async()=>{find(b.dataset.ban).status='banned';await save();toast("User banned");renderAdmin();refreshBadges();});
+  app.querySelectorAll('[data-clr]').forEach(b=>b.onclick=async()=>{find(b.dataset.clr).reports=[];await save();toast("Reports cleared");renderAdmin();refreshBadges();});
+}
+function find(id){return state.users.find(u=>u.id===id)}
+
+/* ---------- BOOT ---------- */
+(async()=>{await load();renderAuth('login');})();
+</script>
+</body>
+</html>
